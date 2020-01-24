@@ -2,7 +2,6 @@
 # Azure pipeline to build and publishe a hugo blog release
 # github.com/kurtmkurtm
 #
-
 trigger:
   - master
   
@@ -11,7 +10,7 @@ trigger:
   
   variables:
     hugo.version: '0.55.6'
-    blog.path: './quickstart'
+    blog.path: './scweb'
   
   steps:
   - script: |
