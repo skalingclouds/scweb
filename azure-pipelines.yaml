@@ -16,7 +16,7 @@ trigger:
   
   variables:
     hugo.version: '0.58.2'
-    blog.path: './scweb'
+    blog.path: '.'
   
   steps:
   - script: |
