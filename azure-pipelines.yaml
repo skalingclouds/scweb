@@ -1,14 +1,4 @@
-#
-<<<<<<< HEAD:scweb/azure-pipelines.yaml
-# Azure pipeline to build and publishe a hugo blog release
-=======
-# Azure pipeline to build and publish a hugo blog release
->>>>>>> 7a9d1b6aa396f4b2bd08430c617311cdda0df993:azure-pipelines.yaml
-# github.com/kurtmkurtm
-#
-
 trigger:
-<<<<<<< HEAD:scweb/azure-pipelines.yaml
   - master
   
   pool:
