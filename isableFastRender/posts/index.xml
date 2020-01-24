@@ -1,0 +1,154 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>Posts on Skaling Clouds</title>
+		<link>http://localhost:1313/posts/</link>
+		<description>Recent content in Posts on Skaling Clouds</description>
+		<generator>Hugo -- gohugo.io</generator>
+		<language>en-us</language>
+		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
+		<lastBuildDate>Thu, 23 Jan 2020 11:36:33 +0800</lastBuildDate>
+		<atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>Powershell Fleet Builder</title>
+			<link>http://localhost:1313/posts/pwshfleetbuild/</link>
+			<pubDate>Thu, 23 Jan 2020 11:36:33 +0800</pubDate>
+			
+			<guid>http://localhost:1313/posts/pwshfleetbuild/</guid>
+			<description>It&amp;rsquo;s been a long, long time since I sat down and really wrote code to acomplish something. It&amp;rsquo;s been one of those things every year i say &amp;ldquo;Ok, i am learning X language&amp;rdquo;, always start and just dont keep at it. Well, i decided to start back with someting i used to do, powershell. It&amp;rsquo;s been a very long time, but here is my first script. I need to often build fleets of VM&amp;rsquo;s in Azure for various testing reasons, so i built a script to do it</description>
+			<content type="html"><![CDATA[<p>It&rsquo;s been a long, long time since I sat down and really wrote code to acomplish something. It&rsquo;s been one of those things every year i say &ldquo;Ok, i am learning X language&rdquo;, always start and just dont keep at it. Well, i decided to start back with someting i used to do, powershell. It&rsquo;s been a very long time, but here is my first script. I need to often build fleets of VM&rsquo;s in Azure for various testing reasons, so i built a script to do it</p>
+<hr>
+<p>Inline styles：</p>
+<p><strong>strong</strong>, <em>emphasis</em>, <em><strong>strong and emphasis</strong></em>,<code>code</code>, <!-- raw HTML omitted -->underline<!-- raw HTML omitted -->, <del>strikethrough</del>, 😂🤣, $\LaTeX$, X^2^, H~2~O, ==highlight==, <a href="https://example.com">Link</a>, and image:</p>
+<p><img src="https://picsum.photos/600/400/?random" alt="img"></p>
+<hr>
+<p>Script:</p>
+<div class="highlight"><pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="k">Param</span> <span class="p">(</span>
+<span class="p">[</span><span class="k">Parameter</span><span class="p">(</span><span class="k">Mandatory</span><span class="p">=</span><span class="nv">$true</span><span class="p">)</span><span class="p">]</span> 
+<span class="no">[string]</span> <span class="nv">$resourceGroup</span><span class="p">,</span>
+<span class="p">[</span><span class="k">Parameter</span><span class="p">(</span><span class="k">Mandatory</span><span class="p">=</span><span class="nv">$true</span><span class="p">)</span><span class="p">]</span> 
+<span class="no">[string]</span> <span class="nv">$basecomputername</span><span class="p">,</span>
+<span class="p">[</span><span class="k">Parameter</span><span class="p">(</span><span class="k">Mandatory</span><span class="p">=</span><span class="nv">$true</span><span class="p">)</span><span class="p">]</span> 
+<span class="no">[string]</span> <span class="nv">$keyvaultname</span><span class="p">,</span>
+<span class="p">[</span><span class="k">Parameter</span><span class="p">(</span><span class="k">Mandatory</span><span class="p">=</span><span class="nv">$true</span><span class="p">)</span><span class="p">]</span> 
+<span class="no">[string]</span> <span class="nv">$region</span><span class="p">,</span>
+<span class="p">[</span><span class="k">Parameter</span><span class="p">(</span><span class="k">Mandatory</span><span class="p">=</span><span class="nv">$true</span><span class="p">)</span><span class="p">]</span> 
+<span class="no">[int32]</span> <span class="nv">$numberofvms</span>
+<span class="c">#[string] $vnet,</span>
+<span class="c">#[string] $subnet</span>
+<span class="p">)</span>
+<span class="nv">$vnet</span> <span class="p">=</span> <span class="s1">&#39;FleetVnet&#39;</span>
+<span class="nv">$subnet</span> <span class="p">=</span> <span class="s1">&#39;FleetSubnet&#39;</span>
+
+
+<span class="nv">$vmImageid</span> <span class="p">=</span> <span class="p">(</span><span class="nb">Get-AzGalleryImageDefinition</span> <span class="n">-ResourceGroupName</span> <span class="s2">&#34;</span><span class="s2">sc-coreinfra-01</span><span class="s2">&#34;</span> <span class="n">-GalleryName</span> <span class="n">scsig01</span><span class="p">)</span><span class="p">.</span><span class="n">id</span>
+<span class="nv">$username</span> <span class="p">=</span> <span class="p">(</span><span class="nb">Get-AzKeyVaultSecret</span> <span class="n">-vaultName</span> <span class="nv">$keyvaultname</span> <span class="n">-name</span> <span class="s2">&#34;</span><span class="s2">VMUserName</span><span class="s2">&#34;</span><span class="p">)</span><span class="p">.</span><span class="n">SecretValueText</span>
+<span class="nv">$password</span> <span class="p">=</span> <span class="p">(</span><span class="nb">Get-AzKeyVaultSecret</span> <span class="n">-vaultName</span> <span class="nv">$keyvaultname</span> <span class="n">-name</span> <span class="s2">&#34;</span><span class="s2">VMPassword</span><span class="s2">&#34;</span><span class="p">)</span><span class="p">.</span><span class="n">SecretValueText</span>
+<span class="nv">$VMLocalAdminUser</span> <span class="p">=</span> <span class="nv">$username</span>
+<span class="nv">$VMLocalAdminSecurePassword</span> <span class="p">=</span> <span class="nb">ConvertTo-SecureString</span> <span class="nv">$password</span> <span class="n">-AsPlainText</span> <span class="n">-Force</span>
+<span class="nv">$Credential</span> <span class="p">=</span> <span class="nb">New-Object</span> <span class="n">System</span><span class="p">.</span><span class="n">Management</span><span class="p">.</span><span class="n">Automation</span><span class="p">.</span><span class="n">PSCredential</span> <span class="p">(</span><span class="nv">$VMLocalAdminUser</span><span class="p">,</span> <span class="nv">$VMLocalAdminSecurePassword</span><span class="p">)</span><span class="p">;</span>
+
+<span class="nb">New-AzResourceGroup</span> <span class="n">-Name</span> <span class="nv">$resourceGroup</span> <span class="n">-location</span> <span class="nv">$region</span>
+
+<span class="nv">$subnetConfig</span> <span class="p">=</span> <span class="nb">New-AzVirtualNetworkSubnetConfig</span> <span class="n">-Name</span> <span class="nv">$subnet</span> <span class="n">-AddressPrefix</span> <span class="n">192</span><span class="p">.</span><span class="n">168</span><span class="p">.</span><span class="n">42</span><span class="p">.</span><span class="n">0</span><span class="p">/</span><span class="n">24</span>
+
+<span class="nv">$vnet</span> <span class="p">=</span> <span class="nb">New-AzVirtualNetwork</span> <span class="n">-ResourceGroupName</span> <span class="nv">$resourceGroup</span> <span class="n">-location</span> <span class="nv">$region</span> <span class="n">-Name</span> <span class="nv">$subnet</span> <span class="p">`</span>
+ <span class="n">-AddressPrefix</span> <span class="n">192</span><span class="p">.</span><span class="n">168</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">/</span><span class="n">16</span> <span class="n">-Subnet</span> <span class="nv">$subnetConfig</span>
+
+<span class="k">while</span> <span class="p">(</span><span class="nv">$count</span> <span class="o">-le</span> <span class="nv">$numberofvms</span><span class="p">)</span> <span class="p">{</span>
+    
+    <span class="nv">$count</span> <span class="p">=</span> <span class="nv">$count</span> <span class="p">+</span> <span class="n">1</span>
+    <span class="nv">$govmname</span> <span class="p">=</span> <span class="s2">&#34;</span><span class="s2">$</span><span class="s2">basecomputername</span><span class="s2">$</span><span class="s2">count</span><span class="s2">&#34;</span>
+    <span class="nv">$nsgname</span> <span class="p">=</span> <span class="s2">&#34;</span><span class="s2">nsg</span><span class="s2">$</span><span class="s2">govmname</span><span class="s2">&#34;</span>
+    <span class="nv">$nicname</span> <span class="p">=</span> <span class="s2">&#34;</span><span class="s2">nic</span><span class="s2">$</span><span class="s2">govmname</span><span class="s2">&#34;</span>
+    <span class="nv">$pipname</span> <span class="p">=</span> <span class="s2">&#34;</span><span class="s2">pip</span><span class="s2">$</span><span class="s2">govmname</span><span class="s2">&#34;</span>
+    <span class="nv">$nsgrulename</span> <span class="p">=</span> <span class="s2">&#34;</span><span class="s2">nsgrule</span><span class="s2">$</span><span class="s2">govmname</span><span class="s2">&#34;</span>
+
+    <span class="nv">$pip</span> <span class="p">=</span> <span class="nb">New-AzPublicIpAddress</span> <span class="n">-ResourceGroupName</span> <span class="nv">$resourceGroup</span> <span class="n">-location</span> <span class="nv">$region</span> <span class="n">-Name</span> <span class="nv">$pipname</span> <span class="n">-AllocationMethod</span> <span class="n">Static</span> <span class="n">-IdleTimeoutInMinutes</span> <span class="n">4</span>
+    
+    <span class="nv">$nsgRuleRDP</span> <span class="p">=</span> <span class="nb">New-AzNetworkSecurityRuleConfig</span> <span class="n">-Name</span> <span class="nv">$nsgrulename</span> <span class="n">-Protocol</span> <span class="n">Tcp</span> <span class="p">`</span>
+    <span class="n">-Direction</span> <span class="n">Inbound</span> <span class="n">-Priority</span> <span class="n">1000</span> <span class="n">-SourceAddressPrefix</span> <span class="p">*</span> <span class="n">-SourcePortRange</span> <span class="p">*</span> <span class="n">-DestinationAddressPrefix</span> <span class="p">*</span> <span class="p">`</span>
+    <span class="n">-DestinationPortRange</span> <span class="n">3389</span> <span class="n">-Access</span> <span class="n">Allow</span>
+    
+    <span class="nv">$nsg</span> <span class="p">=</span> <span class="nb">New-AzNetworkSecurityGroup</span> <span class="n">-ResourceGroupName</span> <span class="nv">$resourceGroup</span> <span class="n">-location</span> <span class="nv">$region</span> <span class="p">`</span>
+    <span class="n">-Name</span> <span class="nv">$nsgname</span> <span class="n">-SecurityRules</span> <span class="nv">$nsgRuleRDP</span>
+
+    <span class="nv">$nic</span> <span class="p">=</span> <span class="nb">New-AzNetworkInterface</span> <span class="n">-Name</span> <span class="nv">$nicname</span> <span class="n">-ResourceGroupName</span> <span class="nv">$resourceGroup</span> <span class="n">-location</span> <span class="nv">$region</span> <span class="p">`</span>
+    <span class="n">-SubnetId</span> <span class="nv">$vnet</span><span class="p">.</span><span class="n">Subnets</span><span class="p">[</span><span class="n">0</span><span class="p">]</span><span class="p">.</span><span class="n">Id</span> <span class="n">-PublicIpAddressId</span> <span class="nv">$pip</span><span class="p">.</span><span class="n">Id</span> <span class="n">-NetworkSecurityGroupId</span> <span class="nv">$nsg</span><span class="p">.</span><span class="n">Id</span>
+    
+    <span class="c"># Create a virtual machine configuration using $imageVersion.Id to specify the shared image</span>
+    <span class="nv">$vmConfig</span> <span class="p">=</span> <span class="nb">New-AzVMConfig</span> <span class="n">-VMName</span> <span class="nv">$govmname</span> <span class="n">-VMSize</span> <span class="n">Standard_D1_v2</span> <span class="p">|</span> <span class="p">`</span>
+    <span class="nb">Set-AzVMOperatingSystem</span> <span class="n">-Windows</span> <span class="n">-ComputerName</span> <span class="nv">$govmname</span> <span class="n">-Credential</span> <span class="nv">$Credential</span> <span class="p">|</span> <span class="p">`</span>
+    <span class="nb">Set-AzVMSourceImage</span> <span class="n">-Id</span> <span class="nv">$vmImageid</span> <span class="p">|</span> <span class="p">`</span>
+    <span class="nb">Add-AzVMNetworkInterface</span> <span class="n">-Id</span> <span class="nv">$nic</span><span class="p">.</span><span class="n">Id</span>
+    
+    <span class="c"># Create a virtual machine</span>
+    <span class="nb">New-AzVM</span> <span class="n">-ResourceGroupName</span> <span class="nv">$resourceGroup</span> <span class="n">-location</span> <span class="nv">$region</span> <span class="n">-VM</span> <span class="nv">$vmConfig</span> <span class="n">-AsJob</span>
+   
+<span class="p">}</span>
+
+<span class="nb">Write-host</span> <span class="s2">&#34;</span><span class="s2">You now have </span><span class="s2">$</span><span class="s2">numberofvms built, enjoy your fleet</span><span class="s2">&#34;</span> 
+</code></pre></div>]]></content>
+		</item>
+		
+		<item>
+			<title>Powershell Fleet Builder</title>
+			<link>http://localhost:1313/posts/typography/</link>
+			<pubDate>Thu, 23 Jan 2020 11:36:33 +0800</pubDate>
+			
+			<guid>http://localhost:1313/posts/typography/</guid>
+			<description>It&amp;rsquo;s been a long, long time since I sat down and really wrote code to acomplish something. It&amp;rsquo;s been one of those things every year i say &amp;ldquo;Ok, i am learning X language&amp;rdquo;, always start and just dont keep at it. Well, i decided to start back with someting i used to do, powershell. It&amp;rsquo;s been a very long time, but here is my first script. I need to often build fleets of VM&amp;rsquo;s in Azure for various testing reasons, so i built a script to do it</description>
+			<content type="html"><![CDATA[<p>It&rsquo;s been a long, long time since I sat down and really wrote code to acomplish something. It&rsquo;s been one of those things every year i say &ldquo;Ok, i am learning X language&rdquo;, always start and just dont keep at it. Well, i decided to start back with someting i used to do, powershell. It&rsquo;s been a very long time, but here is my first script. I need to often build fleets of VM&rsquo;s in Azure for various testing reasons, so i built a script to do it</p>
+<hr>
+<p>Inline styles：</p>
+<p><strong>strong</strong>, <em>emphasis</em>, <em><strong>strong and emphasis</strong></em>,<code>code</code>, <!-- raw HTML omitted -->underline<!-- raw HTML omitted -->, <del>strikethrough</del>, 😂🤣, $\LaTeX$, X^2^, H~2~O, ==highlight==, <a href="https://example.com">Link</a>, and image:</p>
+<p><img src="https://picsum.photos/600/400/?random" alt="img"></p>
+<hr>
+<p>Headings:</p>
+<h1 id="script">Script</h1>
+<div class="highlight"><pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="n">var</span> <span class="n">num1</span><span class="p">,</span> <span class="n">num2</span><span class="p">,</span> <span class="n">sum</span>
+<span class="n">num1</span> <span class="p">=</span> <span class="n">prompt</span><span class="p">(</span><span class="s2">&#34;</span><span class="s2">Enter first number</span><span class="s2">&#34;</span><span class="p">)</span>
+<span class="n">num2</span> <span class="p">=</span> <span class="n">prompt</span><span class="p">(</span><span class="s2">&#34;</span><span class="s2">Enter second number</span><span class="s2">&#34;</span><span class="p">)</span>
+<span class="n">sum</span> <span class="p">=</span> <span class="n">parseInt</span><span class="p">(</span><span class="n">num1</span><span class="p">)</span> <span class="p">+</span> <span class="n">parseInt</span><span class="p">(</span><span class="n">num2</span><span class="p">)</span> <span class="p">/</span><span class="p">/</span> <span class="s2">&#34;</span><span class="s2">+</span><span class="s2">&#34;</span> <span class="n">means</span> <span class="s2">&#34;</span><span class="s2">add</span><span class="s2">&#34;</span>
+<span class="n">alert</span><span class="p">(</span><span class="s2">&#34;</span><span class="s2">Sum = </span><span class="s2">&#34;</span> <span class="p">+</span> <span class="n">sum</span><span class="p">)</span>  <span class="p">/</span><span class="p">/</span> <span class="s2">&#34;</span><span class="s2">+</span><span class="s2">&#34;</span> <span class="n">means</span> <span class="n">combine</span> <span class="n">into</span> <span class="n">a</span> <span class="n">string</span>
+</code></pre></div>]]></content>
+		</item>
+		
+		<item>
+			<title>Typography</title>
+			<link>http://localhost:1313/posts/powershellfleetbuilder/</link>
+			<pubDate>Sat, 29 Sep 2018 11:36:33 +0800</pubDate>
+			
+			<guid>http://localhost:1313/posts/powershellfleetbuilder/</guid>
+			<description>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+ An apple is a sweet, edible fruit produced by an apple tree (Malus pumila).</description>
+			<content type="html"><![CDATA[<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+<blockquote>
+<p>An apple is a sweet, edible fruit produced by an apple tree (Malus pumila). Apple trees are cultivated worldwide, and are the most widely grown species in the genus Malus. The tree originated in Central Asia, where its wild ancestor, Malus sieversii, is still found today. Apples have been grown for thousands of years in Asia and Europe, and were brought to North America by European colonists. Apples have religious and mythological significance in many cultures, including Norse, Greek and European Christian traditions.<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup></p>
+</blockquote>
+<hr>
+<p>Inline styles：</p>
+<p><strong>strong</strong>, <em>emphasis</em>, <em><strong>strong and emphasis</strong></em>,<code>code</code>, <!-- raw HTML omitted -->underline<!-- raw HTML omitted -->, <del>strikethrough</del>, 😂🤣, $\LaTeX$, X^2^, H~2~O, ==highlight==, <a href="https://example.com">Link</a>, and image:</p>
+<p><img src="https://picsum.photos/600/400/?random" alt="img"></p>
+<hr>
+<p>Headings:</p>
+<h1 id="heading-1">Heading 1</h1>
+<p>Syntax Highlighting:</p>
+<div class="highlight"><pre class="chroma"><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">num1</span><span class="p">,</span> <span class="nx">num2</span><span class="p">,</span> <span class="nx">sum</span>
+<span class="nx">num1</span> <span class="o">=</span> <span class="nx">prompt</span><span class="p">(</span><span class="s2">&#34;Enter first number&#34;</span><span class="p">)</span>
+<span class="nx">num2</span> <span class="o">=</span> <span class="nx">prompt</span><span class="p">(</span><span class="s2">&#34;Enter second number&#34;</span><span class="p">)</span>
+<span class="nx">sum</span> <span class="o">=</span> <span class="nb">parseInt</span><span class="p">(</span><span class="nx">num1</span><span class="p">)</span> <span class="o">+</span> <span class="nb">parseInt</span><span class="p">(</span><span class="nx">num2</span><span class="p">)</span> <span class="c1">// &#34;+&#34; means &#34;add&#34;
+</span><span class="c1"></span><span class="nx">alert</span><span class="p">(</span><span class="s2">&#34;Sum = &#34;</span> <span class="o">+</span> <span class="nx">sum</span><span class="p">)</span>  <span class="c1">// &#34;+&#34; means combine into a string
+</span></code></pre></div><section class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1" role="doc-endnote">
+<p>From <a href="https://en.wikipedia.org/wiki/Apple">https://en.wikipedia.org/wiki/Apple</a> <a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</section>
+]]></content>
+		</item>
+		
+	</channel>
+</rss>
