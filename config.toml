@@ -1,4 +1,4 @@
-baseURL = "https://scblog.z5.web.core.windows.net/"
+baseURL = "http://skalingclouds.io/"
 languageCode = "en-us"
 defaultContentLanguage = "en"
 title = "Skaling Clouds"
