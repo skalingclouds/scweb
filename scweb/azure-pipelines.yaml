@@ -1,5 +1,6 @@
 #
 # Azure pipeline to build and publishe a hugo blog release
+# github.com/kurtmkurtm
 #
 trigger:
   - master
@@ -8,7 +9,7 @@ trigger:
     vmImage: 'ubuntu-16.04'
   
   variables:
-    hugo.version: '0.55.6'
+    hugo.version: '0.58.2'
     blog.path: './scweb'
   
   steps:
