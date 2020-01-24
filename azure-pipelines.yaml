@@ -1,6 +1,5 @@
 #
 # Azure pipeline to build and publishe a hugo blog release
-# github.com/kurtmkurtm
 #
 
 trigger:
