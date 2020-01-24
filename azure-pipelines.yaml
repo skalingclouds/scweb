@@ -70,4 +70,3 @@ steps:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: Drop
     publishLocation: 'Container'
->>>>>>> 7a9d1b6aa396f4b2bd08430c617311cdda0df993:azure-pipelines.yaml
