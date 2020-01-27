@@ -8,14 +8,14 @@ tags:
   - Azure
 ---
 
-It's been a long, long time since I sat down and really wrote code to acomplish something. It's been one of those things every year i say "Ok, i am learning X language", always start and just dont keep at it. Well, i decided to start back with someting i used to do, powershell. It's been a very long time, but here is my first script. I need to often build fleets of VM's in Azure for various testing reasons, so i built a script to do it to start that learning process again. 
-
-I have found rule number one when learning coding, as you learn build portions of something you *want* to build. 
+It's been a long time since I sat down to build build a script. Here is a powershell script I built to spin up a fleet of VM's. It uses Azure Key Vault to secure  credentials and calls Azure Shared Image Gallary which hosts a OS Image I update via Packer as it's base image. 
 
 
 
 Script:
 ```powershell
+
+
 Param (
 [Parameter(Mandatory=$true)] 
 [string] $resourceGroup,
@@ -32,9 +32,11 @@ Param (
 )
 $vnet = 'FleetVnet'
 $subnet = 'FleetSubnet'
+$sigGalleryName ='yoursigname'
+$sigResourceGroup = 'yoursigrg'
 
 
-$vmImageid = (Get-AzGalleryImageDefinition -ResourceGroupName "sc-coreinfra-01" -GalleryName scsig01).id
+$vmImageid = (Get-AzGalleryImageDefinition -ResourceGroupName $sigResourceGroup -GalleryName $sigGalleryName).id
 $username = (Get-AzKeyVaultSecret -vaultName $keyvaultname -name "VMUserName").SecretValueText
 $password = (Get-AzKeyVaultSecret -vaultName $keyvaultname -name "VMPassword").SecretValueText
 $VMLocalAdminUser = $username
@@ -51,11 +53,11 @@ $vnet = New-AzVirtualNetwork -ResourceGroupName $resourceGroup -location $region
 while ($count -le $numberofvms) {
     
     $count = $count + 1
-    $govmname = "$basecomputername$count"
-    $nsgname = "nsg$govmname"
-    $nicname = "nic$govmname"
-    $pipname = "pip$govmname"
-    $nsgrulename = "nsgrule$govmname"
+    $vmname = "$basecomputername$count"
+    $nsgname = "nsg$vmname"
+    $nicname = "nic$vmname"
+    $pipname = "pip$vmname"
+    $nsgrulename = "nsgrule$vmname"
 
     $pip = New-AzPublicIpAddress -ResourceGroupName $resourceGroup -location $region -Name $pipname -AllocationMethod Static -IdleTimeoutInMinutes 4
     
@@ -70,8 +72,8 @@ while ($count -le $numberofvms) {
     -SubnetId $vnet.Subnets[0].Id -PublicIpAddressId $pip.Id -NetworkSecurityGroupId $nsg.Id
     
     # Create a virtual machine configuration using $imageVersion.Id to specify the shared image
-    $vmConfig = New-AzVMConfig -VMName $govmname -VMSize Standard_D1_v2 | `
-    Set-AzVMOperatingSystem -Windows -ComputerName $govmname -Credential $Credential | `
+    $vmConfig = New-AzVMConfig -VMName $vmname -VMSize Standard_D1_v2 | `
+    Set-AzVMOperatingSystem -Windows -ComputerName $vmname -Credential $Credential | `
     Set-AzVMSourceImage -Id $vmImageid | `
     Add-AzVMNetworkInterface -Id $nic.Id
     
@@ -81,6 +83,7 @@ while ($count -le $numberofvms) {
 }
 
 Write-host "You now have $numberofvms built, enjoy your fleet" 
+
 ```
 
 [^1]: From https://en.wikipedia.org/wiki/Apple
